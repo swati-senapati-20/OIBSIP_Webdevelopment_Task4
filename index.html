@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CourseCrate Auth</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-black flex items-center justify-center min-h-screen text-white">
+
+  <!-- Login Section -->
+  <div id="loginSection" class="bg-black/40 backdrop-blur-lg rounded-2xl p-10 w-[400px] shadow-xl hidden">
+    <h2 class="text-3xl font-bold mb-6 text-center">Login</h2>
+    
+    <input id="loginEmail" type="text" placeholder="Username" 
+           class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 border border-gray-600 text-white"/>
+
+    <!-- Password with toggle -->
+    <div class="relative w-full mb-4">
+      <input id="loginPassword" type="password" placeholder="Password" 
+             class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-600 text-white"/>
+      <button type="button" onclick="togglePassword('loginPassword')" 
+              class="absolute right-3 top-2 text-gray-400 hover:text-white">👁</button>
+    </div>
+    
+    <button onclick="login()" class="w-full py-2 bg-purple-600 rounded-lg hover:bg-purple-700">Login</button>
+    
+    <p id="loginMessage" class="text-center text-sm mt-4 text-red-400"></p>
+
+    <p class="text-sm mt-4 text-center">Don't have an account? 
+      <button onclick="showRegister()" class="text-purple-400 hover:underline">Sign Up</button>
+    </p>
+  </div>
+
+  <!-- Register Section -->
+  <div id="registerSection" class="bg-black/40 backdrop-blur-lg rounded-2xl p-10 w-[400px] shadow-xl hidden">
+    <h2 class="text-3xl font-bold mb-6 text-center">Register</h2>
+    
+    <input id="regUsername" type="text" placeholder="Choose a username" 
+           class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 border border-gray-600 text-white"/>
+    
+    <!-- Password with toggle -->
+    <div class="relative w-full mb-4">
+      <input id="regPassword" type="password" placeholder="Choose a password" 
+             class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-600 text-white"/>
+      <button type="button" onclick="togglePassword('regPassword')" 
+              class="absolute right-3 top-2 text-gray-400 hover:text-white">👁</button>
+    </div>
+
+    <!-- Confirm Password with toggle -->
+    <div class="relative w-full mb-4">
+      <input id="regConfirmPassword" type="password" placeholder="Confirm password" 
+             class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-600 text-white"/>
+      <button type="button" onclick="togglePassword('regConfirmPassword')" 
+              class="absolute right-3 top-2 text-gray-400 hover:text-white">👁</button>
+    </div>
+    
+    <button onclick="register()" class="w-full py-2 bg-green-600 rounded-lg hover:bg-green-700">Sign Up</button>
+    
+    <p id="registerMessage" class="text-center text-sm mt-4 text-red-400"></p>
+
+    <p class="text-sm mt-4 text-center">Already have an account? 
+      <button onclick="showLogin()" class="text-purple-400 hover:underline">Login</button>
+    </p>
+  </div>
+
+  <!-- Welcome Section -->
+  <div id="welcomeSection" class="bg-black/40 backdrop-blur-lg rounded-2xl p-10 w-[400px] shadow-xl text-center hidden">
+    <h2 class="text-3xl font-bold mb-4">Welcome 🎉</h2>
+    <p id="welcomeText" class="mb-6 text-lg">You have successfully logged in!</p>
+    
+    <button onclick="logout()" class="py-2 px-6 bg-red-600 rounded-lg hover:bg-red-700">
+      Logout
+    </button>
+  </div>
+
+  <script>
+    // Load users from localStorage (or start empty array)
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+
+    function saveUsers() {
+      localStorage.setItem("users", JSON.stringify(users));
+    }
+
+    // Show correct section
+    function checkLogin() {
+      const loggedInUser = localStorage.getItem("loggedInUser");
+      if (loggedInUser) {
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("registerSection").classList.add("hidden");
+        document.getElementById("welcomeSection").classList.remove("hidden");
+        document.getElementById("welcomeText").textContent = `Welcome, ${loggedInUser} 🎉`;
+      } else {
+        showLogin();
+      }
+    }
+
+    // Show Login
+    function showLogin() {
+      document.getElementById("loginSection").classList.remove("hidden");
+      document.getElementById("registerSection").classList.add("hidden");
+      document.getElementById("welcomeSection").classList.add("hidden");
+    }
+
+    // Show Register
+    function showRegister() {
+      document.getElementById("loginSection").classList.add("hidden");
+      document.getElementById("registerSection").classList.remove("hidden");
+      document.getElementById("welcomeSection").classList.add("hidden");
+    }
+
+    // Login function
+    function login() {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      const message = document.getElementById("loginMessage");
+
+      const user = users.find(u => u.username === email && u.password === password);
+
+      if (user) {
+        localStorage.setItem("loggedInUser", email);
+        checkLogin();
+      } else {
+        message.textContent = "❌ Invalid username or password!";
+      }
+    }
+
+    // Register function
+    function register() {
+      const username = document.getElementById("regUsername").value.trim();
+      const password = document.getElementById("regPassword").value.trim();
+      const confirmPassword = document.getElementById("regConfirmPassword").value.trim();
+      const message = document.getElementById("registerMessage");
+
+      if (!username || !password || !confirmPassword) {
+        message.textContent = "⚠️ Please fill all fields!";
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        message.textContent = "⚠️ Passwords do not match!";
+        return;
+      }
+
+      if (users.find(u => u.username === username)) {
+        message.textContent = "⚠️ Username already exists!";
+        return;
+      }
+
+      users.push({ username, password });
+      saveUsers();
+
+      message.style.color = "lightgreen";
+      message.textContent = "✅ Registered successfully! Please login.";
+      setTimeout(showLogin, 1500);
+    }
+
+    // Logout function
+    function logout() {
+      localStorage.removeItem("loggedInUser");
+      checkLogin();
+    }
+
+    // Toggle password visibility
+    function togglePassword(id) {
+      const input = document.getElementById(id);
+      input.type = input.type === "password" ? "text" : "password";
+    }
+
+    // Run on page load
+    checkLogin();
+  </script>
+
+</body>
+</html>
